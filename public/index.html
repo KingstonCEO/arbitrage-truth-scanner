@@ -1,0 +1,1377 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARBITRAGE TRUTH SCANNER | Expose The Real Math</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --matrix-green: #00ff41;
+            --matrix-green-dim: #00cc33;
+            --matrix-green-dark: #003d00;
+            --matrix-glow: rgba(0, 255, 65, 0.3);
+            --bg-dark: #0a0a0a;
+            --bg-darker: #050505;
+            --bg-card: rgba(0, 20, 0, 0.7);
+            --glass-bg: rgba(0, 15, 0, 0.85);
+            --glass-border: rgba(0, 255, 65, 0.2);
+            --text-primary: #00ff41;
+            --text-secondary: #00cc33;
+            --text-muted: #008020;
+            --danger: #ff3333;
+            --danger-glow: rgba(255, 51, 51, 0.3);
+            --warning: #ffaa00;
+            --caution: #ff6600;
+            --safe: #00ff41;
+        }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Share Tech Mono', 'Courier New', monospace;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+            line-height: 1.6;
+        }
+        #matrix-canvas {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: 0;
+            opacity: 0.12;
+            pointer-events: none;
+        }
+        .container {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 { 
+            font-family: 'Orbitron', sans-serif;
+            text-transform: uppercase; 
+            letter-spacing: 3px; 
+        }
+        .glow-text {
+            text-shadow: 0 0 5px var(--matrix-green), 0 0 10px var(--matrix-green),
+                         0 0 20px var(--matrix-green-dim), 0 0 40px var(--matrix-green-dark);
+        }
+        .glass-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.1), inset 0 0 30px rgba(0, 255, 65, 0.02);
+        }
+
+        /* ===== VSL HERO SECTION ===== */
+        .vsl-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+            position: relative;
+            border-bottom: 1px solid var(--matrix-green-dark);
+        }
+        .vsl-hero h1 {
+            font-size: clamp(1.8rem, 5vw, 3.5rem);
+            margin-bottom: 25px;
+            animation: flicker 4s infinite;
+            font-weight: 900;
+            line-height: 1.3;
+        }
+        .vsl-hero .subheadline {
+            font-size: clamp(1rem, 2vw, 1.25rem);
+            color: var(--text-secondary);
+            margin-bottom: 50px;
+            max-width: 800px;
+            line-height: 1.8;
+        }
+        .video-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 20px;
+        }
+        .video-box {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            background: linear-gradient(135deg, rgba(0, 20, 0, 0.9) 0%, rgba(0, 10, 0, 0.95) 100%);
+            border: 2px solid var(--matrix-green);
+            border-radius: 12px;
+            box-shadow: 
+                0 0 30px var(--matrix-glow),
+                0 0 60px rgba(0, 255, 65, 0.15),
+                inset 0 0 100px rgba(0, 255, 65, 0.05);
+            overflow: hidden;
+        }
+        .video-box video {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        .video-placeholder {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .video-placeholder:hover .play-button {
+            transform: scale(1.1);
+            box-shadow: 0 0 50px var(--matrix-glow);
+        }
+        .play-button {
+            width: 100px;
+            height: 100px;
+            background: rgba(0, 255, 65, 0.15);
+            border: 3px solid var(--matrix-green);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 30px var(--matrix-glow);
+        }
+        .play-button::after {
+            content: '';
+            width: 0;
+            height: 0;
+            border-style: solid;
+            border-width: 20px 0 20px 35px;
+            border-color: transparent transparent transparent var(--matrix-green);
+            margin-left: 8px;
+        }
+        .video-scanlines {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.1) 0px,
+                rgba(0, 0, 0, 0.1) 1px,
+                transparent 1px,
+                transparent 2px
+            );
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        .video-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .vsl-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        /* ===== COLLAPSIBLE SECTIONS ===== */
+        .collapsible-sections {
+            width: 100%;
+            max-width: 800px;
+            margin: 60px auto 0;
+        }
+        .collapsible {
+            margin-bottom: 15px;
+        }
+        .collapsible-header {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            padding: 18px 25px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s ease;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+        .collapsible-header:hover {
+            border-color: var(--matrix-green-dim);
+            background: rgba(0, 255, 65, 0.05);
+        }
+        .collapsible-header.active {
+            border-color: var(--matrix-green);
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+        }
+        .collapsible-icon {
+            font-size: 1.2rem;
+            transition: transform 0.3s ease;
+        }
+        .collapsible-header.active .collapsible-icon {
+            transform: rotate(180deg);
+        }
+        .collapsible-content {
+            display: none;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-top: none;
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            padding: 30px;
+            animation: slideDown 0.3s ease;
+        }
+        .collapsible-content.active {
+            display: block;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .script-text {
+            font-size: 1rem;
+            line-height: 2.2;
+            color: var(--text-secondary);
+        }
+        .script-text p {
+            margin-bottom: 20px;
+        }
+        .script-text .emphasis {
+            color: var(--matrix-green);
+            font-weight: bold;
+        }
+        .overlay-section {
+            margin-bottom: 25px;
+            padding-bottom: 25px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .overlay-section:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        .overlay-label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--matrix-green);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+        .overlay-text {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: var(--text-primary);
+        }
+
+        /* ===== ORIGINAL HERO (now secondary) ===== */
+        .hero {
+            text-align: center;
+            padding: 100px 20px;
+            border-bottom: 1px solid var(--matrix-green-dark);
+        }
+        .hero h1 {
+            font-size: clamp(2rem, 7vw, 4.5rem);
+            margin-bottom: 20px;
+            animation: flicker 4s infinite;
+            font-weight: 900;
+        }
+        .hero .subheadline {
+            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+        }
+        .hero .callout {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-left: 4px solid var(--matrix-green);
+            padding: 25px;
+            margin: 30px auto;
+            max-width: 750px;
+            font-style: italic;
+            border-radius: 5px;
+        }
+        .btn-group {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+        .btn {
+            padding: 18px 35px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            border-radius: 5px;
+            font-weight: 700;
+        }
+        .btn-primary {
+            background: var(--matrix-green);
+            color: var(--bg-dark);
+            border: 2px solid var(--matrix-green);
+        }
+        .btn-primary:hover {
+            background: transparent;
+            color: var(--matrix-green);
+            box-shadow: 0 0 30px var(--matrix-glow);
+        }
+        .btn-secondary {
+            background: transparent;
+            color: var(--matrix-green);
+            border: 2px solid var(--matrix-green-dim);
+        }
+        .btn-secondary:hover {
+            border-color: var(--matrix-green);
+            box-shadow: 0 0 30px var(--matrix-glow);
+        }
+        .btn-danger {
+            background: transparent;
+            color: var(--danger);
+            border: 2px solid var(--danger);
+        }
+        .btn-danger:hover {
+            background: var(--danger);
+            color: var(--bg-dark);
+            box-shadow: 0 0 30px var(--danger-glow);
+        }
+        .btn-small {
+            padding: 12px 20px;
+            font-size: 0.8rem;
+        }
+        .section { padding: 80px 0; }
+        .section-title {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            text-align: center;
+            margin-bottom: 50px;
+            position: relative;
+        }
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 120px;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--matrix-green), transparent);
+            margin: 20px auto 0;
+            box-shadow: 0 0 15px var(--matrix-glow);
+        }
+        .calculator-card {
+            padding: 50px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+        .form-group { display: flex; flex-direction: column; }
+        .form-group label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+        .form-group input, .form-group select {
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--matrix-green-dark);
+            color: var(--text-primary);
+            padding: 15px 18px;
+            font-family: inherit;
+            font-size: 1rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--matrix-green);
+            box-shadow: 0 0 15px var(--matrix-glow);
+        }
+        .form-group input::placeholder { color: var(--text-muted); }
+        .form-group select option { background: var(--bg-dark); }
+        .form-buttons {
+            grid-column: 1 / -1;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+        .form-buttons .btn { min-width: 200px; }
+        .results-container { display: none; margin-top: 50px; animation: slideIn 0.5s ease; }
+        .results-container.active { display: block; }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .results-header {
+            text-align: center;
+            padding: 25px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .results-header h3 { font-size: 1.6rem; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 20px;
+            padding: 35px 25px;
+        }
+        .result-item {
+            background: rgba(0, 255, 65, 0.03);
+            border: 1px solid var(--glass-border);
+            padding: 20px;
+            text-align: center;
+            border-radius: 8px;
+        }
+        .result-item .label {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 12px;
+        }
+        .result-item .value { font-size: 1.6rem; font-weight: bold; }
+        .result-item .value.positive { color: var(--safe); }
+        .result-item .value.negative { color: var(--danger); }
+        .result-item .value.warning { color: var(--warning); }
+        .result-item .value.caution { color: var(--caution); }
+        .verdict-box {
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid;
+            padding: 35px;
+            text-align: center;
+            margin: 25px;
+            border-radius: 10px;
+        }
+        .verdict-box.danger { border-color: var(--danger); box-shadow: 0 0 30px var(--danger-glow); }
+        .verdict-box.warning { border-color: var(--warning); box-shadow: 0 0 30px rgba(255, 170, 0, 0.3); }
+        .verdict-box.caution { border-color: var(--caution); box-shadow: 0 0 30px rgba(255, 102, 0, 0.3); }
+        .verdict-box.safe { border-color: var(--safe); box-shadow: 0 0 30px var(--matrix-glow); }
+        .verdict-title { font-size: 1.8rem; margin-bottom: 15px; letter-spacing: 3px; }
+        .verdict-message { font-size: 1rem; opacity: 0.9; line-height: 1.8; }
+        .risk-meter-container { margin: 30px 25px; }
+        .risk-meter-label { 
+            display: flex; 
+            justify-content: space-between; 
+            margin-bottom: 12px; 
+            font-size: 0.85rem;
+            font-family: 'Orbitron', sans-serif;
+        }
+        .risk-meter {
+            height: 35px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        .risk-meter-fill { height: 100%; transition: width 0.5s ease, background 0.5s ease; border-radius: 20px; }
+        .risk-meter-value {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-family: 'Orbitron', sans-serif;
+            text-shadow: 0 0 10px var(--bg-dark);
+        }
+        .report-section {
+            display: none;
+            margin: 30px 25px;
+            padding: 30px;
+            background: rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+        }
+        .report-section.active { display: block; }
+        .report-section h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            color: var(--text-secondary);
+        }
+        .report-content {
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--matrix-green-dark);
+            padding: 20px;
+            border-radius: 5px;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .report-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        .copy-success {
+            color: var(--safe);
+            font-size: 0.85rem;
+            margin-left: 10px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .copy-success.show { opacity: 1; }
+        .checklist { display: grid; gap: 12px; }
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 18px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--glass-border);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .checklist-item:hover { border-color: var(--matrix-green-dim); background: rgba(0, 255, 65, 0.02); }
+        .checklist-item.checked { border-color: var(--danger); background: rgba(255, 51, 51, 0.08); }
+        .checklist-toggle {
+            width: 55px; height: 28px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--matrix-green-dark);
+            border-radius: 14px;
+            position: relative;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+        .checklist-toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px; height: 22px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            top: 2px; left: 2px;
+            transition: all 0.3s ease;
+        }
+        .checklist-item.checked .checklist-toggle { background: rgba(255, 51, 51, 0.3); border-color: var(--danger); }
+        .checklist-item.checked .checklist-toggle::after { left: 29px; background: var(--danger); }
+        .checklist-text { flex: 1; font-size: 0.95rem; }
+        .checklist-number {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            min-width: 25px;
+        }
+        .scam-results {
+            margin-top: 35px;
+            padding: 35px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--glass-border);
+            border-radius: 10px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        .scam-score { font-size: 3.5rem; font-weight: bold; margin-bottom: 15px; font-family: 'Orbitron', sans-serif; }
+        .scam-level { font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 15px; }
+        .scam-description { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.7; }
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        .comparison-card {
+            padding: 35px;
+        }
+        .comparison-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--glass-border);
+        }
+        .comparison-card.real h3 { color: var(--safe); border-color: var(--safe); }
+        .comparison-card.fake h3 { color: var(--danger); border-color: var(--danger); }
+        .comparison-list {
+            list-style: none;
+        }
+        .comparison-list li {
+            padding: 12px 0;
+            padding-left: 30px;
+            position: relative;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .comparison-list li:last-child { border-bottom: none; }
+        .comparison-list li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .comparison-card.real .comparison-list li::before { background: var(--safe); box-shadow: 0 0 10px var(--safe); }
+        .comparison-card.fake .comparison-list li::before { background: var(--danger); box-shadow: 0 0 10px var(--danger); }
+        .warning-box {
+            background: rgba(255, 51, 51, 0.08);
+            border: 2px solid var(--danger);
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 0 40px var(--danger-glow);
+        }
+        .warning-box h3 {
+            color: var(--danger);
+            font-size: 1.5rem;
+            margin-bottom: 25px;
+        }
+        .warning-box p {
+            font-size: 1.1rem;
+            line-height: 1.9;
+            color: #ffcccc;
+        }
+        .footer {
+            text-align: center;
+            padding: 80px 20px;
+            border-top: 1px solid var(--matrix-green-dark);
+        }
+        .disclaimer {
+            max-width: 900px;
+            margin: 0 auto 50px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 2;
+        }
+        .footer-brand { margin-bottom: 25px; }
+        .footer-brand a { color: var(--matrix-green); text-decoration: none; font-size: 1.2rem; font-family: 'Orbitron', sans-serif; }
+        .footer-brand a:hover { text-decoration: underline; text-shadow: 0 0 10px var(--matrix-glow); }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            96% { opacity: 0.9; }
+            97% { opacity: 1; }
+        }
+        .scanline {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--matrix-green), transparent);
+            opacity: 0.4;
+            z-index: 1000;
+            pointer-events: none;
+            animation: scanline 3s linear infinite;
+        }
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100vh); }
+        }
+        .nav-dots {
+            position: fixed;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--matrix-green-dark);
+            border: 1px solid var(--matrix-green-dim);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .nav-dot:hover, .nav-dot.active {
+            background: var(--matrix-green);
+            box-shadow: 0 0 15px var(--matrix-glow);
+            transform: scale(1.3);
+        }
+        @media (max-width: 768px) {
+            .vsl-hero { padding: 40px 15px; min-height: auto; }
+            .vsl-hero h1 { font-size: clamp(1.5rem, 6vw, 2.5rem); }
+            .hero { padding: 60px 15px; }
+            .calculator-card { padding: 25px 15px; }
+            .section { padding: 50px 0; }
+            .form-grid { grid-template-columns: 1fr; }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+            .btn-group, .vsl-buttons { flex-direction: column; align-items: stretch; }
+            .btn { text-align: center; }
+            .form-buttons { flex-direction: column; }
+            .form-buttons .btn { min-width: auto; }
+            .comparison-grid { grid-template-columns: 1fr; }
+            .nav-dots { display: none; }
+            .verdict-box, .risk-meter-container, .report-section { margin: 20px 15px; }
+            .collapsible-content { padding: 20px; }
+            .play-button { width: 80px; height: 80px; }
+        }
+        @media (max-width: 480px) {
+            .results-grid { grid-template-columns: 1fr; }
+            .checklist-item { flex-direction: column; text-align: center; gap: 10px; }
+            .checklist-number { min-width: auto; }
+            .play-button { width: 60px; height: 60px; }
+            .play-button::after { border-width: 15px 0 15px 25px; margin-left: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <canvas id="matrix-canvas"></canvas>
+    <div class="scanline"></div>
+    
+    <nav class="nav-dots">
+        <a href="#vsl-hero" class="nav-dot active" title="Watch"></a>
+        <a href="#calculator" class="nav-dot" title="Truth Scanner"></a>
+        <a href="#red-flags" class="nav-dot" title="Red Flags"></a>
+        <a href="#education" class="nav-dot" title="Real vs Fake"></a>
+        <a href="#promote" class="nav-dot" title="Should You Promote?"></a>
+    </nav>
+
+    <div class="container">
+        <!-- ===== VSL HERO SECTION ===== -->
+        <section id="vsl-hero" class="vsl-hero">
+            <h1 class="glow-text">Before You Trust the Bot,<br>Test the Math.</h1>
+            <p class="subheadline">Crypto arbitrage bots love showing dashboards, percentages, and AI claims. This scanner shows whether the opportunity survives the real math.</p>
+            
+            <div class="video-container">
+                <div class="video-box" id="videoBox">
+                    <video width="100%" height="100%" controls preload="metadata" style="border-radius: 10px; background: #000;">
+                        <source src="demo-video.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-scanlines"></div>
+                </div>
+                <p class="video-label">60-Second Truth Trailer</p>
+            </div>
+
+            <div class="vsl-buttons">
+                <a href="#calculator" class="btn btn-primary">RUN A TRUTH SCAN</a>
+                <a href="#red-flags" class="btn btn-secondary">CHECK RED FLAGS</a>
+            </div>
+
+
+        </section>
+
+        <!-- ===== CALCULATOR SECTION ===== -->
+        <section id="calculator" class="section">
+            <h2 class="section-title glow-text">Truth Scanner</h2>
+            <div class="calculator-card glass-card">
+                <form id="arbitrage-form">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="buyExchange">Buy Exchange</label>
+                            <input type="text" id="buyExchange" placeholder="e.g. Binance" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellExchange">Sell Exchange</label>
+                            <input type="text" id="sellExchange" placeholder="e.g. Coinbase" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="asset">Coin/Asset</label>
+                            <input type="text" id="asset" placeholder="e.g. BTC, ETH, XRP" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="buyPrice">Buy Price ($)</label>
+                            <input type="number" id="buyPrice" step="0.0001" min="0" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellPrice">Sell Price ($)</label>
+                            <input type="number" id="sellPrice" step="0.0001" min="0" placeholder="0.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="tradeAmount">Trade Amount ($)</label>
+                            <input type="number" id="tradeAmount" step="0.01" min="0" placeholder="1000.00" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="buyFee">Buy Fee (%)</label>
+                            <input type="number" id="buyFee" step="0.01" min="0" value="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="sellFee">Sell Fee (%)</label>
+                            <input type="number" id="sellFee" step="0.01" min="0" value="0.1" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="slippage">Slippage (%)</label>
+                            <input type="number" id="slippage" step="0.01" min="0" value="0.2" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="withdrawalFee">Transfer Fee ($)</label>
+                            <input type="number" id="withdrawalFee" step="0.01" min="0" value="0" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="transferTime">Transfer Time</label>
+                            <select id="transferTime" required>
+                                <option value="instant">Instant</option>
+                                <option value="under5">Under 5 min</option>
+                                <option value="5to30" selected>5-30 min</option>
+                                <option value="30to60">30-60 min</option>
+                                <option value="1to4hr">1-4 hours</option>
+                                <option value="4plus">4+ hours</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="liquidity">Liquidity</label>
+                            <select id="liquidity" required>
+                                <option value="high">High</option>
+                                <option value="medium" selected>Medium</option>
+                                <option value="low">Low</option>
+                                <option value="unknown">Unknown</option>
+                            </select>
+                        </div>
+                        <div class="form-buttons">
+                            <button type="submit" class="btn btn-primary">▶ RUN TRUTH SCAN</button>
+                            <button type="button" id="loadExample" class="btn btn-secondary">LOAD EXAMPLE</button>
+                            <button type="button" id="clearForm" class="btn btn-danger btn-small">CLEAR</button>
+                        </div>
+                    </div>
+                </form>
+
+                <div id="results" class="results-container">
+                    <div class="results-header">
+                        <h3 class="glow-text">◈ SCAN COMPLETE ◈</h3>
+                        <p id="scan-summary"></p>
+                    </div>
+                    <div class="results-grid">
+                        <div class="result-item">
+                            <div class="label">Gross Spread</div>
+                            <div class="value" id="grossSpread">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Net Profit</div>
+                            <div class="value" id="netProfit">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Net Profit %</div>
+                            <div class="value" id="netProfitPercent">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Total Fees</div>
+                            <div class="value" id="totalCosts">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Time Risk</div>
+                            <div class="value" id="transferRisk">-</div>
+                        </div>
+                        <div class="result-item">
+                            <div class="label">Liquidity</div>
+                            <div class="value" id="liquidityRisk">-</div>
+                        </div>
+                    </div>
+                    <div class="risk-meter-container">
+                        <div class="risk-meter-label">
+                            <span>RISK SCORE</span>
+                            <span id="riskLabel">-</span>
+                        </div>
+                        <div class="risk-meter">
+                            <div class="risk-meter-fill" id="riskMeterFill"></div>
+                            <div class="risk-meter-value" id="riskScore">0</div>
+                        </div>
+                    </div>
+                    <div class="verdict-box" id="verdictBox">
+                        <div class="verdict-title" id="verdictTitle">-</div>
+                        <div class="verdict-message" id="verdictMessage">-</div>
+                    </div>
+                    <div class="report-section" id="reportSection">
+                        <h4>◈ TRUTH REPORT ◈</h4>
+                        <div class="report-content" id="reportContent"></div>
+                        <div class="report-buttons">
+                            <button type="button" id="copyReport" class="btn btn-primary btn-small">COPY TRUTH REPORT</button>
+                            <span class="copy-success" id="copySuccess">✓ Copied to clipboard!</span>
+                        </div>
+                    </div>
+                    <div style="text-align: center; padding: 20px;">
+                        <button type="button" id="generateReport" class="btn btn-secondary">GENERATE TRUTH REPORT</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== RED FLAGS SECTION ===== -->
+        <section id="red-flags" class="section">
+            <h2 class="section-title glow-text">Fake Bot Red Flag Checker</h2>
+            <div class="glass-card" style="padding: 40px;">
+                <p style="text-align: center; margin-bottom: 35px; color: var(--text-secondary); font-size: 1.05rem;">
+                    Toggle each red flag that applies to the opportunity you're evaluating:
+                </p>
+                <div class="checklist" id="checklist">
+                    <div class="checklist-item" data-index="0">
+                        <span class="checklist-number">01</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does the platform promise daily returns?</span>
+                    </div>
+                    <div class="checklist-item" data-index="1">
+                        <span class="checklist-number">02</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it use AI buzzwords without proof?</span>
+                    </div>
+                    <div class="checklist-item" data-index="2">
+                        <span class="checklist-number">03</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it require recruitment?</span>
+                    </div>
+                    <div class="checklist-item" data-index="3">
+                        <span class="checklist-number">04</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it have referral levels or team commissions?</span>
+                    </div>
+                    <div class="checklist-item" data-index="4">
+                        <span class="checklist-number">05</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it hide the founders or company owners?</span>
+                    </div>
+                    <div class="checklist-item" data-index="5">
+                        <span class="checklist-number">06</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it require connecting a wallet?</span>
+                    </div>
+                    <div class="checklist-item" data-index="6">
+                        <span class="checklist-number">07</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it discourage withdrawals?</span>
+                    </div>
+                    <div class="checklist-item" data-index="7">
+                        <span class="checklist-number">08</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it show profits only inside its own dashboard?</span>
+                    </div>
+                    <div class="checklist-item" data-index="8">
+                        <span class="checklist-number">09</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it claim "guaranteed" arbitrage?</span>
+                    </div>
+                    <div class="checklist-item" data-index="9">
+                        <span class="checklist-number">10</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it have no audited trading history?</span>
+                    </div>
+                    <div class="checklist-item" data-index="10">
+                        <span class="checklist-number">11</span>
+                        <div class="checklist-toggle"></div>
+                        <span class="checklist-text">Does it use fake urgency, airdrops, or countdown bonuses?</span>
+                    </div>
+                </div>
+                <div class="scam-results" id="scamResults">
+                    <div class="scam-score" id="scamScore">0/11</div>
+                    <div class="scam-level" id="scamLevel">AWAITING INPUT</div>
+                    <div class="scam-description" id="scamDescription">Toggle the red flags above to see your risk assessment.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== EDUCATION SECTION ===== -->
+        <section id="education" class="section">
+            <h2 class="section-title glow-text">Real Arbitrage vs Fake Arbitrage</h2>
+            <div class="comparison-grid">
+                <div class="comparison-card glass-card real">
+                    <h3>✓ Real Arbitrage</h3>
+                    <ul class="comparison-list">
+                        <li>Requires speed (milliseconds matter)</li>
+                        <li>Requires deep liquidity access</li>
+                        <li>Requires direct exchange API connections</li>
+                        <li>Requires precise fee calculations</li>
+                        <li>Has NO guaranteed profit</li>
+                        <li>Opportunities vanish in seconds</li>
+                        <li>Usually has razor-thin margins (0.1-0.5%)</li>
+                        <li>Professionals use co-located servers</li>
+                        <li>Transparent trading history verifiable on-chain</li>
+                    </ul>
+                </div>
+                <div class="comparison-card glass-card fake">
+                    <h3>✗ Fake Arbitrage Pitches</h3>
+                    <ul class="comparison-list">
+                        <li>Promise daily guaranteed profit</li>
+                        <li>Use "AI" as a magic word</li>
+                        <li>Pay people to recruit others</li>
+                        <li>Hide the real trading records</li>
+                        <li>Show profits inside a closed dashboard only</li>
+                        <li>Make withdrawals complicated</li>
+                        <li>Use fake urgency and bonus levels</li>
+                        <li>Claim 100% win rates</li>
+                        <li>No verifiable on-chain trading proof</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===== PROMOTE WARNING SECTION ===== -->
+        <section id="promote" class="section">
+            <h2 class="section-title glow-text">Should You Promote It?</h2>
+            <div class="warning-box">
+                <h3>⚠️ CRITICAL WARNING</h3>
+                <p>If you cannot verify the company, the trading records, the custody structure, the legal registration, and the source of payouts — <strong style="color: var(--danger);">do not promote it.</strong></p>
+                <p style="margin-top: 20px;">Your reputation becomes the collateral. When schemes collapse, promoters face legal liability, financial loss, and permanent reputation damage.</p>
+                <p style="margin-top: 20px; font-size: 0.95rem; color: var(--text-muted);">Ask yourself: Can I see audited trading records? Is the company legally registered? Do I know where my money actually goes? If the answer to any of these is "no" — walk away.</p>
+            </div>
+        </section>
+
+        <!-- ===== FOOTER ===== -->
+        <footer class="footer">
+            <div class="disclaimer">
+                <strong>DISCLAIMER:</strong> Arbitrage Truth Scanner is an educational tool only. It does NOT provide financial advice, investment advice, trading signals, or legal advice. Crypto trading involves significant risk of loss. Always verify information with qualified professionals before investing or promoting any financial product. This tool makes no guarantees about accuracy and should not be relied upon for trading decisions.
+            </div>
+            <div class="footer-brand">
+                <p>Built by <a href="https://gregsain.com" target="_blank" rel="noopener">Greg Sain</a></p>
+            </div>
+            <a href="https://gregsain.com" class="btn btn-secondary" target="_blank" rel="noopener">TALK TO GREG</a>
+        </footer>
+    </div>
+
+    <script>
+        // Matrix Rain Effect
+        (function() {
+            const canvas = document.getElementById('matrix-canvas');
+            const ctx = canvas.getContext('2d');
+            let columns, drops;
+            function resize() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                columns = Math.floor(canvas.width / 14);
+                drops = Array(columns).fill(1);
+            }
+            resize();
+            window.addEventListener('resize', resize);
+            const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ$¢£¥€₿';
+            const charArray = chars.split('');
+            function draw() {
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.04)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = '#00ff41';
+                ctx.font = '14px monospace';
+                for (let i = 0; i < drops.length; i++) {
+                    const char = charArray[Math.floor(Math.random() * charArray.length)];
+                    ctx.fillText(char, i * 14, drops[i] * 14);
+                    if (drops[i] * 14 > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                    drops[i]++;
+                }
+            }
+            setInterval(draw, 50);
+        })();
+
+        // Collapsible sections
+        function toggleCollapsible(header) {
+            header.classList.toggle('active');
+            const content = header.nextElementSibling;
+            content.classList.toggle('active');
+        }
+
+        // Store scan data globally
+        let lastScanData = null;
+
+        // Load Example
+        document.getElementById('loadExample').addEventListener('click', function() {
+            document.getElementById('buyExchange').value = 'Binance';
+            document.getElementById('sellExchange').value = 'Coinbase';
+            document.getElementById('asset').value = 'XRP';
+            document.getElementById('buyPrice').value = '2.40';
+            document.getElementById('sellPrice').value = '2.48';
+            document.getElementById('tradeAmount').value = '500';
+            document.getElementById('buyFee').value = '0.1';
+            document.getElementById('sellFee').value = '0.1';
+            document.getElementById('slippage').value = '0.3';
+            document.getElementById('withdrawalFee').value = '8';
+            document.getElementById('transferTime').value = '5to30';
+            document.getElementById('liquidity').value = 'medium';
+        });
+
+        // Clear Form
+        document.getElementById('clearForm').addEventListener('click', function() {
+            document.getElementById('arbitrage-form').reset();
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('reportSection').classList.remove('active');
+            lastScanData = null;
+        });
+
+        // Calculator Logic
+        document.getElementById('arbitrage-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const buyPrice = parseFloat(document.getElementById('buyPrice').value);
+            const sellPrice = parseFloat(document.getElementById('sellPrice').value);
+            const amount = parseFloat(document.getElementById('tradeAmount').value);
+            const buyFeePercent = parseFloat(document.getElementById('buyFee').value);
+            const sellFeePercent = parseFloat(document.getElementById('sellFee').value);
+            const slippagePercent = parseFloat(document.getElementById('slippage').value);
+            const withdrawalFee = parseFloat(document.getElementById('withdrawalFee').value);
+            const transferTime = document.getElementById('transferTime').value;
+            const liquidity = document.getElementById('liquidity').value;
+            const asset = document.getElementById('asset').value.toUpperCase();
+            const buyExchange = document.getElementById('buyExchange').value;
+            const sellExchange = document.getElementById('sellExchange').value;
+
+            // Calculations
+            const grossSpreadPercent = ((sellPrice - buyPrice) / buyPrice) * 100;
+            const coinAmount = amount / buyPrice;
+            const grossProfit = (sellPrice - buyPrice) * coinAmount;
+            const buyFeeCost = amount * (buyFeePercent / 100);
+            const sellFeeCost = (coinAmount * sellPrice) * (sellFeePercent / 100);
+            const slippageCost = amount * (slippagePercent / 100);
+            const totalFees = buyFeeCost + sellFeeCost + slippageCost + withdrawalFee;
+            const netProfit = grossProfit - totalFees;
+            const netProfitPercent = (netProfit / amount) * 100;
+
+            // Risk Score
+            let riskScore = 20;
+            const timeRisks = { instant: 0, under5: 5, '5to30': 15, '30to60': 25, '1to4hr': 35, '4plus': 45 };
+            const liquidityRisks = { high: 0, medium: 15, low: 30, unknown: 35 };
+            riskScore += timeRisks[transferTime] || 0;
+            riskScore += liquidityRisks[liquidity] || 0;
+            if (netProfitPercent < 0) riskScore += 40;
+            else if (netProfitPercent < 0.5) riskScore += 25;
+            else if (netProfitPercent < 2) riskScore += 10;
+            else riskScore += 20;
+            riskScore = Math.min(100, riskScore);
+
+            // Verdict
+            let verdictTitle, verdictMessage, verdictClass;
+            if (netProfit < 0) {
+                verdictTitle = '⛔ NO REAL ARBITRAGE';
+                verdictMessage = 'The math exposed the lie. After fees, slippage, and transfer costs, this "opportunity" loses money. The spread evaporated under scrutiny.';
+                verdictClass = 'danger';
+            } else if (netProfitPercent < 0.5) {
+                verdictTitle = '⚠️ TOO THIN TO TRUST';
+                verdictMessage = 'Signal detected but margins are razor-thin. Any price movement during transfer could flip this to a loss. Not worth the execution risk.';
+                verdictClass = 'warning';
+            } else if (netProfitPercent < 2) {
+                verdictTitle = '🔶 POSSIBLE BUT RISKY';
+                verdictMessage = 'There may be a real opportunity here, but proceed with extreme caution. Verify prices in real-time and account for execution delays.';
+                verdictClass = 'caution';
+            } else {
+                verdictTitle = '🔍 VERIFY MANUALLY';
+                verdictMessage = 'Unusually high spread detected. This could be legitimate OR the prices might be stale/manipulated. Verify both exchanges in real-time before executing.';
+                verdictClass = 'safe';
+            }
+
+            // Risk Label
+            let riskLabel;
+            if (riskScore <= 25) riskLabel = 'LOW RISK';
+            else if (riskScore <= 50) riskLabel = 'CAUTION';
+            else if (riskScore <= 75) riskLabel = 'HIGH RISK';
+            else riskLabel = 'DANGER ZONE';
+
+            const timeLabels = { instant: 'Instant', under5: '< 5 min', '5to30': '5-30 min', '30to60': '30-60 min', '1to4hr': '1-4 hours', '4plus': '4+ hours' };
+            const liquidityLabels = { high: 'High', medium: 'Medium', low: 'Low', unknown: 'Unknown' };
+
+            // Store for report
+            lastScanData = {
+                asset, buyExchange, sellExchange, buyPrice, sellPrice, amount,
+                grossSpreadPercent, netProfit, netProfitPercent, totalFees,
+                riskScore, riskLabel, verdictTitle, verdictMessage, verdictClass,
+                transferTime: timeLabels[transferTime], liquidity: liquidityLabels[liquidity]
+            };
+
+            // Update DOM
+            document.getElementById('grossSpread').textContent = grossSpreadPercent.toFixed(2) + '%';
+            document.getElementById('grossSpread').className = 'value ' + (grossSpreadPercent > 0 ? 'positive' : 'negative');
+            
+            document.getElementById('netProfit').textContent = '$' + netProfit.toFixed(2);
+            document.getElementById('netProfit').className = 'value ' + (netProfit > 0 ? 'positive' : 'negative');
+            
+            document.getElementById('netProfitPercent').textContent = netProfitPercent.toFixed(2) + '%';
+            document.getElementById('netProfitPercent').className = 'value ' + (netProfitPercent > 0.5 ? 'positive' : netProfitPercent > 0 ? 'warning' : 'negative');
+            
+            document.getElementById('totalCosts').textContent = '$' + totalFees.toFixed(2);
+            document.getElementById('totalCosts').className = 'value caution';
+            
+            document.getElementById('transferRisk').textContent = timeLabels[transferTime];
+            document.getElementById('transferRisk').className = 'value ' + (timeRisks[transferTime] > 20 ? 'warning' : 'positive');
+            
+            document.getElementById('liquidityRisk').textContent = liquidityLabels[liquidity];
+            document.getElementById('liquidityRisk').className = 'value ' + (liquidityRisks[liquidity] > 15 ? 'warning' : 'positive');
+            
+            document.getElementById('riskScore').textContent = riskScore;
+            document.getElementById('riskLabel').textContent = riskLabel;
+            
+            const riskMeter = document.getElementById('riskMeterFill');
+            riskMeter.style.width = riskScore + '%';
+            if (riskScore <= 25) riskMeter.style.background = 'var(--safe)';
+            else if (riskScore <= 50) riskMeter.style.background = 'var(--warning)';
+            else if (riskScore <= 75) riskMeter.style.background = 'var(--caution)';
+            else riskMeter.style.background = 'var(--danger)';
+            
+            const verdictBox = document.getElementById('verdictBox');
+            verdictBox.className = 'verdict-box ' + verdictClass;
+            document.getElementById('verdictTitle').textContent = verdictTitle;
+            document.getElementById('verdictMessage').textContent = verdictMessage;
+            
+            document.getElementById('scan-summary').textContent = `Scanning ${asset} arbitrage: ${buyExchange} → ${sellExchange}`;
+            
+            document.getElementById('reportSection').classList.remove('active');
+            document.getElementById('results').classList.add('active');
+            document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // Generate Report
+        document.getElementById('generateReport').addEventListener('click', function() {
+            if (!lastScanData) return;
+            
+            const checkedCount = document.querySelectorAll('.checklist-item.checked').length;
+            const d = lastScanData;
+            
+            const report = `═══════════════════════════════════════
+    ARBITRAGE TRUTH SCANNER REPORT
+═══════════════════════════════════════
+
+SCAN DETAILS
+────────────────────────────────────────
+Asset Tested:     ${d.asset}
+Buy Exchange:     ${d.buyExchange}
+Sell Exchange:    ${d.sellExchange}
+Buy Price:        $${d.buyPrice.toFixed(4)}
+Sell Price:       $${d.sellPrice.toFixed(4)}
+Trade Amount:     $${d.amount.toFixed(2)}
+
+RESULTS
+────────────────────────────────────────
+Gross Spread:     ${d.grossSpreadPercent.toFixed(2)}%
+Total Fees:       $${d.totalFees.toFixed(2)}
+Net Profit:       $${d.netProfit.toFixed(2)}
+Net Profit %:     ${d.netProfitPercent.toFixed(2)}%
+Transfer Time:    ${d.transferTime}
+Liquidity:        ${d.liquidity}
+
+RISK ASSESSMENT
+────────────────────────────────────────
+Risk Score:       ${d.riskScore}/100 (${d.riskLabel})
+Red Flags:        ${checkedCount}/11
+
+VERDICT
+────────────────────────────────────────
+${d.verdictTitle}
+
+${d.verdictMessage}
+
+WARNING
+────────────────────────────────────────
+${d.netProfit < 0 ? 
+'This opportunity shows a NET LOSS after accounting for all costs. Do not proceed.' :
+d.netProfitPercent < 0.5 ?
+'Margins are too thin. Price movement during transfer could result in loss.' :
+d.netProfitPercent < 2 ?
+'Proceed with extreme caution. Verify real-time prices before execution.' :
+'Unusually high spread. Verify prices are current and accurate before trading.'}
+
+═══════════════════════════════════════
+Generated by Arbitrage Truth Scanner
+https://gregsain.com
+═══════════════════════════════════════`;
+
+            document.getElementById('reportContent').textContent = report;
+            document.getElementById('reportSection').classList.add('active');
+            document.getElementById('reportSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+
+        // Copy Report
+        document.getElementById('copyReport').addEventListener('click', async function() {
+            const report = document.getElementById('reportContent').textContent;
+            try {
+                await navigator.clipboard.writeText(report);
+                const success = document.getElementById('copySuccess');
+                success.classList.add('show');
+                setTimeout(() => success.classList.remove('show'), 2000);
+            } catch (err) {
+                alert('Failed to copy. Please select and copy manually.');
+            }
+        });
+
+        // Red Flag Checker
+        const checklistItems = document.querySelectorAll('.checklist-item');
+        
+        checklistItems.forEach(item => {
+            item.addEventListener('click', function() {
+                this.classList.toggle('checked');
+                updateScamScore();
+            });
+        });
+
+        function updateScamScore() {
+            const checked = document.querySelectorAll('.checklist-item.checked').length;
+            const scoreEl = document.getElementById('scamScore');
+            const levelEl = document.getElementById('scamLevel');
+            const descEl = document.getElementById('scamDescription');
+            const resultsEl = document.getElementById('scamResults');
+            
+            scoreEl.textContent = checked + '/11';
+            
+            let level, desc;
+            if (checked <= 2) {
+                level = '✓ LOW VISIBLE HYPE';
+                desc = 'Low visible hype, but still verify. Even legitimate projects should be researched thoroughly.';
+                resultsEl.style.borderColor = 'var(--safe)';
+                resultsEl.style.color = 'var(--safe)';
+            } else if (checked <= 5) {
+                level = '⚠ CAUTION ADVISED';
+                desc = 'Caution: this has common crypto scheme patterns. Multiple red flags suggest this needs deeper investigation before any involvement.';
+                resultsEl.style.borderColor = 'var(--warning)';
+                resultsEl.style.color = 'var(--warning)';
+            } else if (checked <= 8) {
+                level = '🚨 HIGH RISK DETECTED';
+                desc = 'High risk: this looks more like a recruitment machine than a trading system. The pattern matches known scheme structures.';
+                resultsEl.style.borderColor = 'var(--caution)';
+                resultsEl.style.color = 'var(--caution)';
+            } else {
+                level = '⛔ DANGER ZONE';
+                desc = 'Do not promote this without legal and financial verification. This matches classic scheme patterns. Your reputation and potentially your legal standing are at risk.';
+                resultsEl.style.borderColor = 'var(--danger)';
+                resultsEl.style.color = 'var(--danger)';
+            }
+            
+            levelEl.textContent = level;
+            descEl.textContent = desc;
+        }
+
+        // Nav dots active state
+        const sections = document.querySelectorAll('section[id]');
+        const navDots = document.querySelectorAll('.nav-dot');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                if (scrollY >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+            navDots.forEach(dot => {
+                dot.classList.remove('active');
+                if (dot.getAttribute('href') === '#' + current) {
+                    dot.classList.add('active');
+                }
+            });
+        });
+
+        // Video placeholder click (for future video embed)
+        document.getElementById('videoPlaceholder').addEventListener('click', function() {
+            // When video is added, this can trigger play or expand
+            // For now, scroll to scanner
+            document.getElementById('calculator').scrollIntoView({ behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
